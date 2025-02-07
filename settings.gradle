@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = 'a-cache-machine'
-include('app')
+include('server')
