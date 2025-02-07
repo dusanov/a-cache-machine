@@ -119,8 +119,8 @@ public class LFUCache<K, V> implements ICache<K, V> {
    }
 
     @Override
-    public void remove(K key) throws CacheException {
-        cache.remove(key);
+    public V remove(K key) throws CacheException {
+        return cache.remove(key);
     }
 
 

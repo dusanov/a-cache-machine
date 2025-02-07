@@ -38,7 +38,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'a.cache.machine.App'
+    mainClass = 'a.cache.machine.Server'
 }
 
 tasks.named('test') {
