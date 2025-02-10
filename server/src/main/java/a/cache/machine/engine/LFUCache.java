@@ -15,8 +15,9 @@ import java.util.concurrent.atomic.AtomicLong;
 // import org.slf4j.Logger;
 // import org.slf4j.LoggerFactory;
 
-public class LFUCachePQueue<K, V> implements ICache<K, V> {
-    // private static final Logger logger = LoggerFactory.getLogger(LFUCacheTSet.class);
+public class LFUCache<K, V> implements ICache<K, V> {
+    // private static final Logger logger =
+    // LoggerFactory.getLogger(LFUCacheTSet.class);
     private final ConcurrentHashMap<K, V> cache;
     private final ConcurrentHashMap<K, Integer> frequencyMap;
     private final PriorityQueue<K> evictionQueue;
@@ -25,7 +26,7 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
     private final List<ICacheEventListener> listeners;
     private final CacheMetrics metrics;
 
-    public LFUCachePQueue(long maxSizeInBytes) {
+    public LFUCache(long maxSizeInBytes) {
         this.cache = new ConcurrentHashMap<>(16, 0.75f);
         this.frequencyMap = new ConcurrentHashMap<>();
         this.evictionQueue = new PriorityQueue<>(Comparator.comparingInt(frequencyMap::get));
@@ -76,15 +77,15 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
             currentSizeInBytes.addAndGet(-estimateSize(value));
             listeners.forEach(listener -> listener.onEviction(keyToEvict.toString(), value));
             metrics.incrementEvictions();
-            // logger.info("Evicted key: {}, current queue size in bytes: {}", keyToEvict, currentSizeInBytes);
+            // logger.info("Evicted key: {}, current queue size in bytes: {}", keyToEvict,
+            // currentSizeInBytes);
         }
     }
 
     private long estimateSize(V value) {
         try (
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-        ) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ObjectOutputStream oos = new ObjectOutputStream(baos);) {
             oos.writeObject(value);
             return baos.size();
         } catch (IOException e) {
@@ -92,31 +93,31 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
             return value.toString().length() * 2; // Rough estimate assuming String chars are 2 bytes
         }
     }
-   // Other methods (remove, clear, shutdown, etc.)
+    // Other methods (remove, clear, shutdown, etc.)
 
-   @Override
-   public synchronized void shutdown() throws CacheException {
-       try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("cache.dat"))) {
-           oos.writeObject(cache);
-       } catch (IOException e) {
-           throw new CacheException("Failed to persist cache to disk", e);
-       }
-   }
-   
-   public synchronized void loadFromDisk() throws CacheException {
-       try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("cache.dat"))) {
-           @SuppressWarnings("unchecked")
-           ConcurrentHashMap<K, V> cacheFromDisk = (ConcurrentHashMap<K, V>) ois.readObject();
-           cacheFromDisk.forEach((k, v) -> {
-               cache.put(k, v);
-               frequencyMap.put(k, 1);
-               currentSizeInBytes.addAndGet(estimateSize(v));
-               evictionQueue.add(k);
-           });
-       } catch (IOException | ClassNotFoundException e) {
-           throw new CacheException("Failed to load cache from disk", (Throwable) e);
-       }
-   }
+    @Override
+    public synchronized void shutdown() throws CacheException {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("cache.dat"))) {
+            oos.writeObject(cache);
+        } catch (IOException e) {
+            throw new CacheException("Failed to persist cache to disk", e);
+        }
+    }
+
+    public synchronized void loadFromDisk() throws CacheException {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("cache.dat"))) {
+            @SuppressWarnings("unchecked")
+            ConcurrentHashMap<K, V> cacheFromDisk = (ConcurrentHashMap<K, V>) ois.readObject();
+            cacheFromDisk.forEach((k, v) -> {
+                cache.put(k, v);
+                frequencyMap.put(k, 1);
+                currentSizeInBytes.addAndGet(estimateSize(v));
+                evictionQueue.add(k);
+            });
+        } catch (IOException | ClassNotFoundException e) {
+            throw new CacheException("Failed to load cache from disk", (Throwable) e);
+        }
+    }
 
     @Override
     public V remove(K key) throws CacheException {
@@ -124,7 +125,6 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
         evictionQueue.remove(key);
         return cache.remove(key);
     }
-
 
     @Override
     public void clear() throws CacheException {
@@ -138,7 +138,7 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
         return cache.size();
     }
 
-    public long currentSizeInBytes(){
+    public long currentSizeInBytes() {
         return currentSizeInBytes.get();
     }
 
@@ -155,5 +155,5 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
     @Override
     public CacheMetrics getMetrics() {
         return metrics;
-    }   
+    }
 }
