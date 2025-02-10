@@ -48,12 +48,7 @@ public class LRUCache<K,V> extends LinkedHashMap<K, V> implements ICache<K,V> {
         if (key == null || value == null) {
             throw new IllegalArgumentException("Key or value cannot be null");
         }
-
         long objectSize = estimateSize(value);
-        // while (currentSizeInBytes.get() + objectSize > maxSizeInBytes) {
-        //     evict();
-        // }
-
         currentSizeInBytes.addAndGet(objectSize);
         return super.put(key, value);
     }    
@@ -74,9 +69,11 @@ public class LRUCache<K,V> extends LinkedHashMap<K, V> implements ICache<K,V> {
 
     @Override
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-        // return super.size() > maxCapacity;
-        return currentSizeInBytes() > maxCapacityInBytes;
-        
+        if (currentSizeInBytes() > maxCapacityInBytes){
+            currentSizeInBytes.addAndGet(-estimateSize(eldest.getValue()));
+            return true;
+        }
+        return false;
     }
 
     private long estimateSize(V value) {

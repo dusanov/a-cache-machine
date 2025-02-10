@@ -12,11 +12,11 @@ import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 
 public class LFUCachePQueue<K, V> implements ICache<K, V> {
-    private static final Logger logger = LoggerFactory.getLogger(LFUCacheTSet.class);
+    // private static final Logger logger = LoggerFactory.getLogger(LFUCacheTSet.class);
     private final ConcurrentHashMap<K, V> cache;
     private final ConcurrentHashMap<K, Integer> frequencyMap;
     private final PriorityQueue<K> evictionQueue;
