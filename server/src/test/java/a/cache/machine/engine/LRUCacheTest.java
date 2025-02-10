@@ -10,11 +10,11 @@ class LRUCacheTest {
     @BeforeEach
     void setUp() {
         // Initialize a cache with a maximum size of 100 bytes for testing
-        cache = new LRUCache<>(7);
+        cache = new LRUCache<>(100);
     }
 
     @Test
-    void testPutAndGet() throws CacheException {
+    void testLFU() throws CacheException {
         cache.put("key1", "value1");
         cache.put("key2", "value2");
 
@@ -104,7 +104,7 @@ class LRUCacheTest {
         cache.shutdown();
 
         // Simulate restart by creating a new cache and loading from disk
-        LRUCache<String, Object> newCache = new LRUCache<>(7);
+        LRUCache<String, Object> newCache = new LRUCache<>(100);
         newCache.loadFromDisk();
 
         assertEquals("value1", newCache.get("key1"));

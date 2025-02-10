@@ -15,21 +15,21 @@ import java.util.concurrent.atomic.AtomicLong;
 //TODO: this is not concurrent
 public class LRUCache<K,V> extends LinkedHashMap<K, V> implements ICache<K,V> {
 
-    private final int maxCapacity;
+    private final int maxCapacityInBytes;
     private final AtomicLong currentSizeInBytes;
     private final List<ICacheEventListener> listeners;
     private final CacheMetrics metrics;
 
-    public LRUCache(int capacity) {
-        super(capacity, 0.75f, true);
-        this.maxCapacity = capacity;
+    public LRUCache(int maxCapacityInBytes) {
+        super(16, 0.75f, true);
+        this.maxCapacityInBytes = maxCapacityInBytes;
         this.currentSizeInBytes = new AtomicLong(0);
         this.listeners = new CopyOnWriteArrayList<>();
         this.metrics = new CacheMetrics();        
     }
 
     @Override
-    public V get(Object key) {
+    public synchronized V get(Object key) {
         @SuppressWarnings("unchecked")
         K typedKey = (K) key;
         if (super.containsKey(typedKey)) {
@@ -44,7 +44,7 @@ public class LRUCache<K,V> extends LinkedHashMap<K, V> implements ICache<K,V> {
     }    
 
     @Override
-    public V put(K key, V value) {
+    public synchronized V put(K key, V value) {
         if (key == null || value == null) {
             throw new IllegalArgumentException("Key or value cannot be null");
         }
@@ -59,8 +59,24 @@ public class LRUCache<K,V> extends LinkedHashMap<K, V> implements ICache<K,V> {
     }    
 
     @Override
+    public synchronized V remove(Object key){
+        return super.remove(key);
+    }
+
+    @Override
+    public synchronized void clear(){
+        super.clear();
+    }
+
+    public long currentSizeInBytes(){
+        return currentSizeInBytes.get();
+    }    
+
+    @Override
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-        return super.size() > maxCapacity;
+        // return super.size() > maxCapacity;
+        return currentSizeInBytes() > maxCapacityInBytes;
+        
     }
 
     private long estimateSize(V value) {
@@ -77,7 +93,7 @@ public class LRUCache<K,V> extends LinkedHashMap<K, V> implements ICache<K,V> {
     }    
 
     @Override
-    public void shutdown() throws CacheException {
+    public synchronized void shutdown() throws CacheException {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("cache.dat"))) {
             oos.writeObject(this);
         } catch (IOException e) {
@@ -85,7 +101,7 @@ public class LRUCache<K,V> extends LinkedHashMap<K, V> implements ICache<K,V> {
         }
     }
     
-    public void loadFromDisk() throws CacheException {
+    public synchronized void loadFromDisk() throws CacheException {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("cache.dat"))) {
             @SuppressWarnings("unchecked")
             LRUCache<K, V> cacheFromDisk = (LRUCache<K, V>) ois.readObject();
@@ -99,12 +115,12 @@ public class LRUCache<K,V> extends LinkedHashMap<K, V> implements ICache<K,V> {
     }
 
     @Override
-    public void addEventListener(ICacheEventListener listener) {
+    public synchronized void addEventListener(ICacheEventListener listener) {
         listeners.add(listener);
     }
 
     @Override
-    public void removeEventListener(ICacheEventListener listener) {
+    public synchronized void removeEventListener(ICacheEventListener listener) {
         listeners.remove(listener);
     }
 

@@ -26,7 +26,7 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
     private final CacheMetrics metrics;
 
     public LFUCachePQueue(long maxSizeInBytes) {
-        this.cache = new ConcurrentHashMap<>();
+        this.cache = new ConcurrentHashMap<>(16, 0.75f);
         this.frequencyMap = new ConcurrentHashMap<>();
         this.evictionQueue = new PriorityQueue<>(Comparator.comparingInt(frequencyMap::get));
         this.maxSizeInBytes = maxSizeInBytes;
@@ -76,7 +76,7 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
             currentSizeInBytes.addAndGet(-estimateSize(value));
             listeners.forEach(listener -> listener.onEviction(keyToEvict.toString(), value));
             metrics.incrementEvictions();
-            logger.info("Evicted key: {}, current queue size in bytes: {}", keyToEvict, currentSizeInBytes);
+            // logger.info("Evicted key: {}, current queue size in bytes: {}", keyToEvict, currentSizeInBytes);
         }
     }
 
@@ -95,7 +95,7 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
    // Other methods (remove, clear, shutdown, etc.)
 
    @Override
-   public void shutdown() throws CacheException {
+   public synchronized void shutdown() throws CacheException {
        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("cache.dat"))) {
            oos.writeObject(cache);
        } catch (IOException e) {
@@ -103,7 +103,7 @@ public class LFUCachePQueue<K, V> implements ICache<K, V> {
        }
    }
    
-   public void loadFromDisk() throws CacheException {
+   public synchronized void loadFromDisk() throws CacheException {
        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("cache.dat"))) {
            @SuppressWarnings("unchecked")
            ConcurrentHashMap<K, V> cacheFromDisk = (ConcurrentHashMap<K, V>) ois.readObject();
