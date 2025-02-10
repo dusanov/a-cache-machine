@@ -1,8 +1,10 @@
 package a.cache.machine.engine;
 
+import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class CacheMetrics {
+public class CacheMetrics implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final AtomicLong hits = new AtomicLong(0);
     private final AtomicLong misses = new AtomicLong(0);
     private final AtomicLong evictions = new AtomicLong(0);

@@ -4,13 +4,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class LFUCacheTest {
-    private LFUCache<String, Object> cache;
+class LFUCachePQueueTest {
+    private LFUCachePQueue<String, Object> cache;
 
     @BeforeEach
     void setUp() {
         // Initialize a cache with a maximum size of 100 bytes for testing
-        cache = new LFUCache<>(100);
+        cache = new LFUCachePQueue<>(100);
     }
 
     @Test
@@ -108,7 +108,7 @@ class LFUCacheTest {
         cache.shutdown();
 
         // Simulate restart by creating a new cache and loading from disk
-        LFUCache<String, Object> newCache = new LFUCache<>(100);
+        LFUCacheTSet<String, Object> newCache = new LFUCacheTSet<>(100);
         newCache.loadFromDisk();
 
         assertEquals("value1", newCache.get("key1"));

@@ -7,7 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import a.cache.machine.engine.ICache;
-import a.cache.machine.engine.LFUCache;
+import a.cache.machine.engine.LFUCacheTSet;
+import a.cache.machine.engine.LRUCache;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
@@ -19,7 +20,8 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        ICache<String,Object> cache = new LFUCache<>(MAX_SIZE_IN_BYTES);
+        //TODO: this is max number of records
+        ICache<String,Object> cache = new LRUCache<>(MAX_SIZE_IN_BYTES);
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             logger.info(getGreeting() + PORT);
 

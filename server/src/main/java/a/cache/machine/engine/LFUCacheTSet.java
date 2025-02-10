@@ -8,27 +8,36 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
+import java.util.Objects;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LFUCache<K, V> implements ICache<K, V> {
-    private static final Logger logger = LoggerFactory.getLogger(LFUCache.class);
+public class LFUCacheTSet<K, V> implements ICache<K, V> {
+    private static final Logger logger = LoggerFactory.getLogger(LFUCacheTSet.class);
     private final ConcurrentHashMap<K, V> cache;
     private final ConcurrentHashMap<K, Integer> frequencyMap;
-    private final PriorityQueue<K> evictionQueue;
+    // private final TreeSet<CacheEntry<K>> evictionSet;
+    private final TreeSet<K> evictionSet;
     private final long maxSizeInBytes;
     private final AtomicLong currentSizeInBytes;
     private final List<ICacheEventListener> listeners;
     private final CacheMetrics metrics;
 
-    public LFUCache(long maxSizeInBytes) {
+    public LFUCacheTSet(long maxSizeInBytes) {
         this.cache = new ConcurrentHashMap<>();
         this.frequencyMap = new ConcurrentHashMap<>();
-        this.evictionQueue = new PriorityQueue<>(Comparator.comparingInt(frequencyMap::get));
+        // this.evictionSet = new TreeSet<>(Comparator
+        //     .comparingInt((CacheEntry<K> entry) -> frequencyMap.get(entry.getKey()))
+        //     .thenComparingLong(CacheEntry::getInsertionTime)
+        // );        
+        this.evictionSet = new TreeSet<>(Comparator
+                                            .comparing(K::toString)    
+                                            .thenComparingInt(frequencyMap::get)
+                                        );                                        
         this.maxSizeInBytes = maxSizeInBytes;
         this.currentSizeInBytes = new AtomicLong(0);
         this.listeners = new CopyOnWriteArrayList<>();
@@ -39,10 +48,13 @@ public class LFUCache<K, V> implements ICache<K, V> {
     public V get(K key) {
         if (cache.containsKey(key)) {
             frequencyMap.put(key, frequencyMap.get(key) + 1);
+            // Refresh the eviction set
+            // evictionSet.remove(new CacheEntry<>(key));
+            // evictionSet.add(new CacheEntry<>(key));            
+            evictionSet.remove(key);
+            evictionSet.add(key);            
             listeners.forEach(listener -> listener.onHit(key.toString()));
             metrics.incrementHits();
-            evictionQueue.remove(key);
-            evictionQueue.offer(key);
             return cache.get(key);
         } else {
             listeners.forEach(listener -> listener.onMiss(key.toString()));
@@ -52,31 +64,36 @@ public class LFUCache<K, V> implements ICache<K, V> {
     }
 
     @Override
-    public void put(K key, V value) throws CacheException {
+    public V put(K key, V value) throws CacheException {
         if (key == null || value == null) {
             throw new CacheException("Key or value cannot be null");
         }
 
-        long objectSize = estimateSize(value);
+        long objectSize = estimateSize(value); 
         while (currentSizeInBytes.get() + objectSize > maxSizeInBytes) {
             evict();
         }
 
-        cache.put(key, value);
         frequencyMap.put(key, 1);
         currentSizeInBytes.addAndGet(objectSize);
-        evictionQueue.offer(key);
+        // evictionSet.add(new CacheEntry<>(key));
+        evictionSet.add(key);
+        return cache.put(key, value);
     }
 
     private void evict() {
-        K keyToEvict = evictionQueue.poll();
-        if (keyToEvict != null) {
-            V value = cache.remove(keyToEvict);
-            frequencyMap.remove(keyToEvict);
-            currentSizeInBytes.addAndGet(-estimateSize(value));
-            listeners.forEach(listener -> listener.onEviction(keyToEvict.toString(), value));
-            metrics.incrementEvictions();
-            logger.info("Evicted key: {}, current queue size in bytes: {}", keyToEvict, currentSizeInBytes);
+        if (!evictionSet.isEmpty()) {
+            // CacheEntry<K> entryToEvict = evictionSet.pollFirst();
+            K entryToEvict = evictionSet.pollFirst();
+            if (entryToEvict != null) {
+                // K key = entryToEvict.getKey();
+                V value = cache.remove(entryToEvict);
+                frequencyMap.remove(entryToEvict);
+                currentSizeInBytes.addAndGet(-estimateSize(value));
+                listeners.forEach(listener -> listener.onEviction(entryToEvict.toString(), value));
+                metrics.incrementEvictions();
+                logger.info("Evicted key: {}, current queue size in bytes: {}", entryToEvict, currentSizeInBytes);
+            }
         }
     }
 
@@ -111,7 +128,7 @@ public class LFUCache<K, V> implements ICache<K, V> {
                cache.put(k, v);
                frequencyMap.put(k, 1);
                currentSizeInBytes.addAndGet(estimateSize(v));
-               evictionQueue.add(k);
+               evictionSet.add(k);
            });
        } catch (IOException | ClassNotFoundException e) {
            throw new CacheException("Failed to load cache from disk", (Throwable) e);
@@ -120,17 +137,21 @@ public class LFUCache<K, V> implements ICache<K, V> {
 
     @Override
     public V remove(K key) throws CacheException {
+        frequencyMap.remove(key);
+        evictionSet.remove(key);
         return cache.remove(key);
     }
 
 
     @Override
     public void clear() throws CacheException {
+        frequencyMap.clear();
+        evictionSet.clear();
         cache.clear();
     }
 
     @Override
-    public long size() {
+    public int size() {
         return cache.size();
     }
 
@@ -152,4 +173,36 @@ public class LFUCache<K, V> implements ICache<K, V> {
     public CacheMetrics getMetrics() {
         return metrics;
     }   
+
+    // Helper class for cache entries
+    private static class CacheEntry<K> {
+        private final K key;
+        private final long insertionTime;
+
+        public CacheEntry(K key) {
+            this.key = key;
+            this.insertionTime = System.nanoTime();
+        }
+
+        public K getKey() {
+            return key;
+        }
+
+        public long getInsertionTime() {
+            return insertionTime;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CacheEntry<?> that = (CacheEntry<?>) o;
+            return Objects.equals(key, that.key);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(key);
+        }
+    }    
 }
