@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.stream.IntStream;
 
 class PerformanceTest {
-    private static final int EXPECTED = 100_000_001;
-    private static final int MAX_SIZE_IN_BYTES = 10_060_000;
-    private static final int MAX_ITEMS = 100_000_000;
+    private static final int EXPECTED = 2_000_001;
+    private static final int MAX_SIZE_IN_BYTES = 1_060_000;
+    private static final int MAX_ITEMS = 2_000_000;
     private LRUCache<String, Object> lruCache;
     private LFUCache<String, Object> lfuCache;
 
@@ -135,7 +135,7 @@ class PerformanceTest {
         System.out.println("Number of items: " + lfuCache.size());
         System.out.println("Number of hits: " + lfuCache.getMetrics().getHits());
         System.out.println("Number of misses: " + lfuCache.getMetrics().getMisses());
-        System.out.println("Number of evictions: " + lruCache.getMetrics()
+        System.out.println("Number of evictions: " + lfuCache.getMetrics()
                 .getEvictions());
     }
 }

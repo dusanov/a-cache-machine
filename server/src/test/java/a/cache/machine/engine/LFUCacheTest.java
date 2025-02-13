@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class LFUCachePQueueTest {
+class LFUCacheTest {
     private LFUCache<String, Object> cache;
 
     @BeforeEach
@@ -37,6 +37,7 @@ class LFUCachePQueueTest {
         cache.put("key5", "value5"); // Assume size = 13
         cache.put("key6", "value6"); // Assume size = 13
         cache.put("key7", "value7"); // Assume size = 13
+        cache.put("key8", "value8");
 
         // Access keys to update their frequency
         cache.get("key1");
@@ -45,19 +46,20 @@ class LFUCachePQueueTest {
         cache.get("key3");
         cache.get("key4");
         cache.get("key5");
+        cache.get("key6");
 
         // Add one more item to trigger eviction
-        cache.put("key8", "value8"); // Assume size = 13
+        cache.put("key9", "value9"); // Assume size = 13
 
         // key6 and key7 should be evicted (least frequently used)
         assertNull(cache.get("key7"));
 
         // Add one more item to trigger eviction
-        cache.put("key9", "value9"); // Assume size = 13
-        assertNull(cache.get("key6"));
+        cache.put("key10", "value10"); // Assume size = 13
+        assertNull(cache.get("key8"));
 
         assertEquals("value1", cache.get("key1"));
-        assertEquals("value8", cache.get("key8"));
+        assertEquals("value9", cache.get("key9"));
     }
 
     @Test
