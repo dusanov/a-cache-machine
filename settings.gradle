@@ -12,3 +12,4 @@ plugins {
 
 rootProject.name = 'a-cache-machine'
 include('server')
+include('client')

@@ -18,12 +18,14 @@ public class Server {
         return "RESP Server is listening on port ";
     }
 
+    private static volatile boolean running = true;
+
     public static void main(String[] args) {
         ICache<String, Object> cache = new LRUCache<>(MAX_SIZE_IN_BYTES);
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             logger.info(getGreeting() + PORT);
 
-            while (true) {
+            while (running) {
                 Socket socket = serverSocket.accept();
                 logger.info("New client connected");
 
@@ -32,5 +34,9 @@ public class Server {
         } catch (IOException ex) {
             logger.error(ex.getLocalizedMessage());
         }
+    }
+
+    public static void shutdown() {
+        running = false;
     }
 }

@@ -35,6 +35,7 @@ class ClientHandler extends Thread {
             while (true) {
                 String respLine = reader.readLine();
                 if (respLine == null) {
+                    logger.info("Client disconnected");
                     break; // Client disconnected
                 }
 
@@ -42,12 +43,12 @@ class ClientHandler extends Thread {
 
                 // Parse the RESP command
                 if (respLine.startsWith("*")) {
-                    String[] splitRespLine = respLine.split("\\\\r\\\\n");
-                    int numArgs = Integer.parseInt(splitRespLine[0].substring(1));
-                    //*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n
+                    int numArgs = Integer.parseInt(respLine.substring(1));
                     String[] args = new String[numArgs];
                     for (int i = 0; i < numArgs; i++) {
-                        args[i] = splitRespLine[2 * i + 2];
+                        String argLengthLine = reader.readLine(); // Read the length of the argument
+                        String arg = reader.readLine(); // Read the argument itself
+                        args[i] = arg;
                     }
 
                     // Process the command
@@ -60,8 +61,6 @@ class ClientHandler extends Thread {
             }
         } catch (IOException ex) {
             logger.error(ex.getLocalizedMessage());
-        // } catch (CacheException e) {
-        //     logger.error(e.getLocalizedMessage());
         } finally {
             try {
                 socket.close();
@@ -72,7 +71,7 @@ class ClientHandler extends Thread {
         }
     }
 
-    private String processCommand(String[] args) /* throws CacheException */ {
+    private String processCommand(String[] args) {
         if (args.length == 0) {
             return "-ERR No command provided\r\n";
         }
