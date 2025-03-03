@@ -68,6 +68,7 @@ class ClientHandler extends Thread {
             } catch (IOException ex) {
                 logger.error(ex.getLocalizedMessage());
             }
+            logger.info("Client disconnected");
         }
     }
 

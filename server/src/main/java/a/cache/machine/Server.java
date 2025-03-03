@@ -30,7 +30,7 @@ public class Server {
                 new ClientHandler(socket, cache).start();
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error(ex.getLocalizedMessage());
         }
     }
 }

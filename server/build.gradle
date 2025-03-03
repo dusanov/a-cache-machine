@@ -8,6 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' // Add the Shadow plugin
 }
 
 repositories {
@@ -18,12 +19,9 @@ repositories {
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
-
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
     // This dependency is used by the application.
-    implementation 'com.google.guava:guava:32.1.1-jre'
-    
+    implementation 'com.google.guava:guava:32.1.1-jre'    
     // Add SLF4J API and Simple implementation
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'org.slf4j:slf4j-simple:2.0.9'
@@ -36,6 +34,12 @@ java {
     }
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'a.cache.machine.Server'
+    }
+}
+
 application {
     // Define the main class for the application.
     mainClass = 'a.cache.machine.Server'
@@ -44,4 +48,18 @@ application {
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+// Configure the Shadow plugin to build a fat JAR
+shadowJar {
+    archiveClassifier.set('all') // Optional: Adds '-all' to the JAR name
+    mergeServiceFiles() // Merges service files if needed
+    manifest {
+        attributes 'Main-Class': 'a.cache.machine.Server'
+    }
+}
+
+// Ensure the shadowJar task is run during the build
+build {
+    dependsOn shadowJar
 }
