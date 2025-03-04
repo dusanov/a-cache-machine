@@ -34,9 +34,11 @@ public class Server {
         } catch (IOException ex) {
             logger.error(ex.getLocalizedMessage());
         }
+        logger.info(".... Server stopped ....");
     }
 
     public static void shutdown() {
+        logger.info(".... Shutting down server ....");
         running = false;
     }
 }

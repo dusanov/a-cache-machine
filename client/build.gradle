@@ -25,7 +25,7 @@ dependencies {
     // Add SLF4J API and Simple implementation
     // implementation 'org.slf4j:slf4j-api:2.0.9'
     // implementation 'org.slf4j:slf4j-simple:2.0.9'
-    implementation project(':server') // Add dependency on the server subproject
+    // implementation project(':server') // Add dependency on the server subproject
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -45,61 +45,6 @@ application {
     // Define the main class for the application.
     mainClass = 'a.cache.machine.Client'
 }
-
-// Task to start the server
-// task startServer(type: JavaExec) {
-//     group = 'application'
-//     description = 'Starts the Redis-like server.'
-//     classpath = sourceSets.main.runtimeClasspath
-//     mainClass = 'a.cache.machine.Server' // Fully qualified name of the Server class
-//     doFirst {
-//         println "Starting server..."
-//     }
-// }
-
-// Task to start the server in a background thread
-// task startServer {
-//     group = 'application'
-//     description = 'Starts the Redis-like server in a background thread.'
-//     doLast {
-//         println "Starting server in a background thread..."
-//         Thread.start {
-//             try {
-//                 // Use the server subproject's runtime classpath
-//                 URLClassLoader classLoader = new URLClassLoader(
-//                     configurations.runtimeClasspath.files.collect { it.toURI().toURL() } as URL[],
-//                     Thread.currentThread().contextClassLoader
-//                 )
-//                 // Load the Server class using the custom class loader
-//                 Class<?> serverClass = classLoader.loadClass("a.cache.machine.Server")
-//                 // Invoke the main method
-//                 serverClass.getMethod("main", String[].class).invoke(null, [null] as Object[])
-//             } catch (Exception e) {
-//                 println "Failed to start server: ${e.message}"
-//                 e.printStackTrace()
-//             }
-//         }
-//         // Wait a few seconds to ensure the server is fully started
-//         Thread.sleep(5000)
-//     }
-// }
-
-// Task to stop the server
-// task stopServer {
-//     group = 'application'
-//     description = 'Stops the Redis-like server.'
-//     doLast {
-//         println "Stopping server..."
-//         a.cache.machine.Server.shutdown() // Call the shutdown method
-//     }
-// }
-
-// Configure the test task
-// test {
-//     useJUnitPlatform()
-//     dependsOn startServer // Start the server before running tests
-//     finalizedBy stopServer // Stop the server after tests are complete
-// }
 
 tasks.named('test') {
     // Use JUnit Platform for unit tests.

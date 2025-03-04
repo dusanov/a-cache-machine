@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
-public class Client {
+public class Client implements IClient<String, String> {
 
     private Socket socket;
     private BufferedReader reader;
@@ -19,7 +19,7 @@ public class Client {
         writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
     }
 
-    public String sendCommand(String... args) throws IOException {
+    private String sendCommand(String... args) throws IOException {
         // Build the RESP command
         StringBuilder command = new StringBuilder();
         command.append("*").append(args.length).append("\r\n"); // Number of arguments
@@ -66,5 +66,36 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String ping() throws Exception{
+        return sendCommand("PING");
+    }
+
+    @Override
+    public String put(String key, String value) throws Exception {
+       return sendCommand("SET",key,value);
+    }
+
+    @Override
+    public String get(String key) throws Exception {
+        return sendCommand("GET",key);
+    }
+
+    @Override
+    public String remove(String key) throws Exception {
+        return sendCommand("DEL",key);
+    }
+
+    @Override
+    public void clear() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'clear'");
+    }
+
+    @Override
+    public int size() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'size'");
     }
 }
