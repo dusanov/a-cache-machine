@@ -3,38 +3,39 @@ package a.cache.machine;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import a.cache.machine.engine.ICache;
-import a.cache.machine.engine.LRUCache;
 
-public class Server {
-    private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private static final int PORT = 6379;
-    private static int MAX_SIZE_IN_BYTES = 100;
+public class RESPServer {
+    private static final Logger logger = LoggerFactory.getLogger(RESPServer.class);
+    private static boolean running = true;
+    private final int PORT;
+    private final ICache<String, Object> cache;
 
     public static String getGreeting() {
         return "RESP Server is listening on port ";
     }
 
-    private static volatile boolean running = true;
+    public RESPServer(ICache<String, Object> cache, int port) {
+        this.cache = cache;
+        this.PORT = port;
+    }
 
-    public static void main(String[] args) {
-        ICache<String, Object> cache = new LRUCache<>(MAX_SIZE_IN_BYTES);
+    public void start() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             logger.info(getGreeting() + PORT);
-
             while (running) {
                 Socket socket = serverSocket.accept();
-                logger.info("New client connected");
-
+                logger.info("Client connected");
                 new ClientHandler(socket, cache).start();
             }
         } catch (IOException ex) {
-            logger.error(ex.getLocalizedMessage());
+            logger.error(ex.getLocalizedMessage(), ex);
         }
-        logger.info(".... Server stopped ....");
+        logger.info(".... Server stopped ....");        
     }
 
     public static void shutdown() {

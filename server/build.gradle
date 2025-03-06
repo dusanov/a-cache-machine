@@ -25,6 +25,17 @@ dependencies {
     // Add SLF4J API and Simple implementation
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'org.slf4j:slf4j-simple:2.0.9'
+    implementation 'javax.websocket:javax.websocket-api:1.1'
+    // Add Tyrus dependencies
+    // implementation 'org.glassfish.tyrus:tyrus-server:2.2.0'
+    // https://mvnrepository.com/artifact/org.glassfish.tyrus/tyrus-container-grizzly-server
+    // implementation 'org.glassfish.tyrus:tyrus-container-grizzly-server:2.2.0'
+
+    // implementation 'org.glassfish.tyrus:tyrus-core:2.2.0'
+    // implementation 'org.glassfish.tyrus:tyrus-spi:2.2.0'
+    // https://mvnrepository.com/artifact/io.pebbletemplates/pebble
+    implementation 'io.pebbletemplates:pebble:3.1.5'
+
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -42,7 +53,7 @@ jar {
 
 application {
     // Define the main class for the application.
-    mainClass = 'a.cache.machine.Server'
+    mainClass = 'a.cache.machine.MainServer'
 }
 
 tasks.named('test') {

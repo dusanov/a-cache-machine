@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+</head>
+<body>
+    <h1>Welcome to the RESP server!</h1>
+    <h2>{{ message }}</h2>
+    <hr>
+    <div>
+        <p>Hits: {{ hits }}</p>
+        <p>Misses: {{ misses }}</p>
+        <p>Evictions: {{ evictions }}</p>
+    </div>
+</body>
+</html>

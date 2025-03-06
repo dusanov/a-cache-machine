@@ -36,10 +36,10 @@ class ClientHandler extends Thread {
                 String respLine = reader.readLine();
                 if (respLine == null) {
                     logger.info("Client disconnected");
-                    break; // Client disconnected
+                    break;
                 }
 
-                logger.info("Received: " + respLine);
+                logger.debug("Received: " + respLine);
 
                 // Parse the RESP command
                 if (respLine.startsWith("*")) {
@@ -67,7 +67,6 @@ class ClientHandler extends Thread {
             } catch (IOException ex) {
                 logger.error(ex.getLocalizedMessage());
             }
-            logger.info("Client disconnected");
         }
     }
 

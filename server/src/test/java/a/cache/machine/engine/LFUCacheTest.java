@@ -98,8 +98,8 @@ class LFUCacheTest {
 
     @Test
     void testNullKeyOrValue() {
-        assertThrows(CacheException.class, () -> cache.put(null, "value"));
-        assertThrows(CacheException.class, () -> cache.put("key", null));
+        assertThrows(IllegalArgumentException.class, () -> cache.put(null, "value"));
+        assertThrows(IllegalArgumentException.class, () -> cache.put("key", null));
     }
 
     @Test

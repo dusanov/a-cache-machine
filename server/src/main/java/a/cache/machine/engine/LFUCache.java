@@ -11,12 +11,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LFUCache<K,V> implements ICache<K,V> {
-
-    private static final Logger logger = LoggerFactory.getLogger(LFUCache.class);
 
     // Maps key to the Node
     private Map<K, LFUNode<K,V>> cache;
@@ -66,10 +62,10 @@ public class LFUCache<K,V> implements ICache<K,V> {
 
     // Function to put a key-value pair into the cache
     @Override
-    public V put(K key, V value) throws CacheException {
+    public V put(K key, V value) {
 
         if (key == null || value == null) {
-            throw new CacheException("Key or value cannot be null");
+            throw new IllegalArgumentException("Key or value cannot be null");
         }
         if (cache.containsKey(key)) {
             LFUNode<K,V> node = cache.get(key);
@@ -149,8 +145,7 @@ public class LFUCache<K,V> implements ICache<K,V> {
 
         // Remove the node from the current frequency list
         remove(node);
-        if (frequencyMap.get(oldFreq).first.next
-            == frequencyMap.get(oldFreq).second) {
+        if (frequencyMap.get(oldFreq).first.next == frequencyMap.get(oldFreq).second) {
             frequencyMap.remove(oldFreq);
 
             // Update minimum frequency if needed
@@ -190,11 +185,7 @@ public class LFUCache<K,V> implements ICache<K,V> {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("cache.dat"))) {
             ConcurrentHashMap<K, V> cacheFromDisk = (ConcurrentHashMap<K, V>) ois.readObject();
             cacheFromDisk.forEach((k, v) -> {
-                try {
-                    this.put(k, (V) ((LFUNode)v).value);
-                } catch (CacheException e) {
-                    logger.error(e.getLocalizedMessage());
-                }
+                this.put(k, (V) ((LFUNode)v).value);
             });
         } catch (IOException | ClassNotFoundException e) {
             throw new CacheException("Failed to load cache from disk", (Throwable) e);

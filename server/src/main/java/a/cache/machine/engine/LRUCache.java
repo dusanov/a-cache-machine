@@ -104,7 +104,7 @@ public class LRUCache<K, V> extends LinkedHashMap<K, V> implements ICache<K, V> 
             LRUCache<K, V> cacheFromDisk = (LRUCache<K, V>) ois.readObject();
             cacheFromDisk.forEach((k, v) -> {
                 this.put(k, v);
-                currentSizeInBytes.addAndGet(estimateSize(v));
+                // currentSizeInBytes.addAndGet(estimateSize(v));
             });
         } catch (IOException | ClassNotFoundException e) {
             throw new CacheException("Failed to load cache from disk", (Throwable) e);

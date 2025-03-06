@@ -104,11 +104,7 @@ class PerformanceTest {
 
         long startTime = System.nanoTime();
         IntStream.rangeClosed(0, MAX_ITEMS).forEach((i) -> {
-            try {
-                lfuCache.put("key" + i, "value" + i);
-            } catch (CacheException e) {
-                e.printStackTrace();
-            }
+            lfuCache.put("key" + i, "value" + i);
         });
         // assertEquals(EXPECTED, lfuCache.size());
         long endTime = System.nanoTime();
